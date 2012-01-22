@@ -42,7 +42,7 @@ class Rdy
   def is_new?; @is_new; end
   def save(hash_value = nil)
     raise "missing hash value" if hash_value.nil? and is_new?
-    @_item = item = @_table.items.create(@hash_key.to_sym => hash_value) if is_new?
+    @_item = @_table.items.create(@hash_key.to_sym => hash_value) if is_new?
     if @_item
       @_item.attributes.set(@attributes)
       @is_new = false; @hash_value = hash_value
