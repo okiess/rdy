@@ -25,6 +25,12 @@ Fun little ruby client for Amazon DynamoDB.
     
 Advanced features like queries, scans etc. are not supported yet.
 
+## Installation
+
+    gem install rdy
+    
+Then create a .rdy.yml file with your AWS credentials in your home directory. Checkout the sample file for help. Also make sure you activate DynamoDB in your AWS account.
+
 ## Contributing to rdy
  
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
