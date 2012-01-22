@@ -4,18 +4,11 @@ require "aws-sdk"
 
 class Rdy
   RESERVED = ["attributes", "hash_value", "hash_key", "is_new?", "all", "find", "save",
-    "create", "table", "table=", "destroy"]
+    "create_table", "table", "table=", "destroy", "dynamodb"]
 
   def initialize(table, hash_key)
-    @attributes = {}
-    @table = table
-    @hash_key = hash_key
-    config = YAML.load(File.read("#{ENV['HOME']}/.rdy.yml"))
-    raise "Config file expected in ~/.rdy.yml" unless config
-    @dynamo_db = AWS::DynamoDB.new(:access_key_id => config['access_key_id'],
-                                   :secret_access_key => config['secret_access_key'])
-    @is_new = true
-    @_table = @dynamo_db.tables[@table]
+    @attributes = {}; @table = table; @hash_key = hash_key; @is_new = true
+    @_table = Rdy.dynamo_db.tables[@table]
     @_table.status
   end
 
@@ -24,7 +17,19 @@ class Rdy
   def attributes; @attributes; end
   def hash_value; @hash_value; end
   def hash_key; @hash_key; end
-  def is_new?; @is_new; end
+  
+  def self.dynamo_db
+    config = YAML.load(File.read("#{ENV['HOME']}/.rdy.yml"))
+    raise "Config file expected in ~/.rdy.yml" unless config
+    @@dynamo_db = AWS::DynamoDB.new(:access_key_id => config['access_key_id'],
+                                   :secret_access_key => config['secret_access_key'])
+  end
+
+  def self.create_table(table, read_capacity_units, write_capacity_units, hash_key, range_key = nil)
+    dynamo_db.tables.create(table, read_capacity_units, write_capacity_units,
+      :hash_key => hash_key, :range_key => range_key)
+  end
+
   def all; @_table.items.collect {|i| i.attributes.to_h }; end
   def find(hash_value)
     it = @_table.items[hash_value]
@@ -34,6 +39,7 @@ class Rdy
     @attributes
   end
 
+  def is_new?; @is_new; end
   def save(hash_value = nil)
     raise "missing hash value" if hash_value.nil? and is_new?
     @_item = item = @_table.items.create(@hash_key.to_sym => hash_value) if is_new?

@@ -5,18 +5,23 @@ Fun little ruby client for Amazon DynamoDB.
     rdy = Rdy.new("your_table", "your_hash_value")
     rdy.any_attribute = "nice!"
     rdy.foo = "bar"
-    rdy.save("1")
+    rdy.save("1") # hash key value
     
     rdy.foo = "bar2"
-    rdy.save
+    rdy.save # update
     
     rdy.any_attribute = nil
-    rdy.save
+    rdy.save # delete an attribute
     
-    rdy.find("1")
-    rdy.destroy
+    rdy.find("1") # find by hash key value
+    rdy.destroy # delete item
 
     rdy.all
+
+    read_capacity_units = 10
+    write_capacity_units = 5
+    Rdy.create_table("rdy", read_capacity_units, write_capacity_units, :id => :string) # hash key only
+    Rdy.create_table("rdy2", read_capacity_units, write_capacity_units, {:id => :string}, {:comment_id => :number}) # hash and range key
     
 Advanced features like queries, scans etc. are not supported yet.
 
