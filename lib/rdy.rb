@@ -30,8 +30,12 @@ class Rdy
     raise "missing hash value" if hash_value.nil?
     @_item = @_table.items[hash_value]
     @attributes.clear
-    @_item.attributes.to_h.each {|k, v| self.send("#{k}=".to_sym, v) unless k == @hash_key }
-    @hash_value = hash_value; @is_new = false
+    if @_item.attributes.any?
+      @_item.attributes.to_h.each {|k, v| self.send("#{k}=".to_sym, v) unless k == @hash_key }
+      @hash_value = hash_value; @is_new = false
+    else
+      @hash_value = nil
+    end
     @attributes
   end
 
@@ -41,7 +45,8 @@ class Rdy
     @_item = @_table.items.create(@hash_key.to_sym => hash_value) if is_new?
     if @_item
       @_item.attributes.set(@attributes)
-      @is_new = false; @hash_value = hash_value
+      @hash_value = hash_value if is_new?
+      @is_new = false
       @_item.attributes.to_h
     end
   end
