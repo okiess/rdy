@@ -3,9 +3,6 @@ gem "aws-sdk"
 require "aws-sdk"
 
 class Rdy
-  RESERVED = ["attributes", "hash_value", "hash_key", "is_new?", "all", "find", "save",
-    "create_table", "table", "table=", "destroy", "dynamodb"]
-
   def initialize(table, hash_key)
     @attributes = {}; @table = table; @hash_key = hash_key; @is_new = true
     @_table = Rdy.dynamo_db.tables[@table]
@@ -58,14 +55,10 @@ class Rdy
 
   private
   def method_missing(method, *args, &block)
-    if RESERVED.include?(method.to_s)
-      self.send(method.to_sym, *args, &block)
+    if method.to_s[-1, 1] == '='
+      @attributes[method.to_s.gsub('=', '')] = args.first
     else
-      if method.to_s[-1, 1] == '='
-        @attributes[method.to_s.gsub('=', '')] = args.first
-      else
-        @attributes[method.to_s]
-      end
+      @attributes[method.to_s]
     end
   end
 end
