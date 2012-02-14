@@ -2,13 +2,23 @@ require 'helper'
 
 class TestRdy < Test::Unit::TestCase
   def rdy
-    @rdy = Rdy.new('rdy_test', 'id')
+    @rdy = Rdy.new(RDY_SIMPLE_TABLE, 'id')
+  end
+
+  def rdy_range
+    @rdy = Rdy.new(RDY_RANGE_TABLE, 'id', 'foo')
+  end
+
+  should "create an Rdy instance" do
+    assert_equal rdy.table, RDY_SIMPLE_TABLE
+    assert_equal rdy.hash_key, 'id'
+    assert_nil rdy.hash_value, nil
   end
   
-  should "create an Rdy instance" do
-    rdy = Rdy.new('rdy_test', 'id')
-    assert_equal rdy.table, 'rdy_test'
-    assert_equal rdy.hash_key, 'id'
+  should "create an Rdy instance for table with a range key" do
+    assert_equal rdy_range.table, RDY_RANGE_TABLE
+    assert_equal rdy_range.hash_key, 'id'
+    assert_equal rdy_range.range_key, 'foo'
     assert_nil rdy.hash_value, nil
   end
   
@@ -44,7 +54,7 @@ class TestRdy < Test::Unit::TestCase
       assert @rdy.is_new?
       @rdy.foo = "bar"
       assert_equal @rdy.foo, "bar"
-      assert_equal @rdy.table, "rdy_test"
+      assert_equal @rdy.table, RDY_SIMPLE_TABLE
       assert_nil @rdy.hash_value
       attributes = @rdy.save('1')
       assert_equal @rdy.hash_value, '1'

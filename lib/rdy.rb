@@ -3,8 +3,9 @@ gem "aws-sdk"
 require "aws-sdk"
 
 class Rdy
-  def initialize(table, hash_key)
-    @attributes = {}; @table = table; @hash_key = hash_key; @is_new = true
+  def initialize(table, hash_key, range_key = nil)
+    @attributes = {}; @table = table; @hash_key = hash_key; @range_key = range_key
+    @is_new = true
     @_table = Rdy.dynamo_db.tables[@table]
     @_table.status
   end
@@ -13,7 +14,8 @@ class Rdy
   def attributes; @attributes; end
   def hash_value; @hash_value; end
   def hash_key; @hash_key; end
-  
+  def range_key; @range_key; end
+
   def self.dynamo_db
     config = YAML.load(File.read("#{ENV['HOME']}/.rdy.yml"))
     raise "Config file expected in ~/.rdy.yml" unless config

@@ -14,8 +14,12 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rdy'
 
-puts "Setting up test table for Rdy..."
-Rdy.create_table("rdy_test", 10, 5, :id => :string)
+RDY_SIMPLE_TABLE = 'rdy_test_simple'
+RDY_RANGE_TABLE = 'rdy_test_range'
+
+puts "Setting up test tables for Rdy..."
+Rdy.create_table(RDY_SIMPLE_TABLE, 10, 5, :id => :string) rescue nil
+Rdy.create_table(RDY_RANGE_TABLE, 10, 5, {:id => :string}, {:foo => :string}) rescue nil
 
 class Test::Unit::TestCase
 end
