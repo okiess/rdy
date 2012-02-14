@@ -19,6 +19,8 @@ Fun little ruby client for Amazon DynamoDB.
     rdy.all
     rdy.count
 
+    rdy.scan(:any_attribute => 'nice!')
+
     read_capacity_units = 10
     write_capacity_units = 5
     Rdy.create_table("rdy", read_capacity_units, write_capacity_units, :id => :string) # hash key only

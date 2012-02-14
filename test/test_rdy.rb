@@ -30,10 +30,11 @@ class TestRdy < Test::Unit::TestCase
     should "create assign a value to an attribute" do
       @rdy.foo = "bar"
       @rdy.bar = 23
-      @rdy.flag = true
+      @rdy.tags = ['a', 'b', 'c']
       assert_equal @rdy.foo, "bar"
       assert_equal @rdy.bar, 23
-      assert @rdy.flag
+      assert_not_nil @rdy.tags
+      assert_equal @rdy.tags.size, 3
     end
     
     should "have values in attributes hash" do
@@ -53,14 +54,18 @@ class TestRdy < Test::Unit::TestCase
     should "save an item" do
       assert @rdy.is_new?
       @rdy.foo = "bar"
+      @rdy.count = 1
+      @rdy.tags = ['a', 'b', 'c']
       assert_equal @rdy.foo, "bar"
       assert_equal @rdy.table, RDY_SIMPLE_TABLE
       assert_nil @rdy.hash_value
       attributes = @rdy.save('1')
       assert_equal @rdy.hash_value, '1'
-      assert_equal attributes.size, 2
+      assert_equal attributes.size, 4
       assert attributes.keys.include?('id')
       assert attributes.keys.include?('foo')
+      assert attributes.keys.include?('count')
+      assert attributes.keys.include?('tags')
       assert !@rdy.is_new?
       @rdy.destroy
     end
@@ -116,9 +121,12 @@ class TestRdy < Test::Unit::TestCase
       @rdy2.save("4")
       rdy_range
       @rdy2.foo = "bar2"
-      @rdy2.data = "test2"
+      @rdy2.data = "test"
       @rdy2.save("5")
-      # TODO
+      
+      attrs = @rdy2.scan(:data => 'test')
+      assert_not_nil attrs
+      assert_equal attrs.size, 2
     end
   end
 end

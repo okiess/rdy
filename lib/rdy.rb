@@ -70,6 +70,12 @@ class Rdy
     end
   end
 
+  def scan(attrs)
+    @_table.items.where(attrs).collect do |item|
+      item.attributes.to_h
+    end
+  end
+
   def destroy
     unless is_new?
       @_item.delete
