@@ -6,7 +6,7 @@ class TestRdy < Test::Unit::TestCase
   end
 
   def rdy_range
-    @rdy = Rdy.new(RDY_RANGE_TABLE, 'id', 'foo')
+    @rdy2 = Rdy.new(RDY_RANGE_TABLE, 'id', 'foo')
   end
 
   should "create an Rdy instance" do
@@ -102,6 +102,23 @@ class TestRdy < Test::Unit::TestCase
       @rdy.destroy
       @rdy.find("3")
       assert_nil @rdy.hash_value
+    end
+  end
+  
+  context "Query" do
+    setup do
+      rdy_range
+    end
+    
+    should "query by range value" do
+      @rdy2.foo = "bar1"
+      @rdy2.data = "test"
+      @rdy2.save("4")
+      rdy_range
+      @rdy2.foo = "bar2"
+      @rdy2.data = "test2"
+      @rdy2.save("5")
+      # TODO
     end
   end
 end

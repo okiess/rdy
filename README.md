@@ -17,6 +17,7 @@ Fun little ruby client for Amazon DynamoDB.
     rdy.destroy # delete item
 
     rdy.all
+    rdy.count
 
     read_capacity_units = 10
     write_capacity_units = 5

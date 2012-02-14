@@ -3,11 +3,20 @@ gem "aws-sdk"
 require "aws-sdk"
 
 class Rdy
+  @@_tables = {}
   def initialize(table, hash_key, range_key = nil)
     @attributes = {}; @table = table; @hash_key = hash_key; @range_key = range_key
     @is_new = true
-    @_table = Rdy.dynamo_db.tables[@table]
-    @_table.status
+    if @@_tables[table]
+      @_table = @@_tables[table]
+    else
+      @_table = Rdy.dynamo_db.tables[@table]
+      if @_table.status == :active
+        @@_tables[table] = @_table
+      else
+        raise "Table not active yet!"
+      end
+    end
   end
   def table=(value); @table = value; end
   def table; @table; end
@@ -40,13 +49,21 @@ class Rdy
     end
     @attributes
   end
+  def count; @_table.items.count; end
 
   def is_new?; @is_new; end
   def save(hash_value = nil)
     raise "missing hash value" if hash_value.nil? and is_new?
-    @_item = @_table.items.create(@hash_key.to_sym => hash_value) if is_new?
+    if is_new?
+      @_item = @_table.items.create(@range_key ? { @hash_key.to_sym => hash_value, @range_key.to_sym => @attributes[@range_key] } : { @hash_key.to_sym => hash_value })
+    end
     if @_item
-      @_item.attributes.set(@attributes)
+      if @range_key
+        attrs = @attributes; attrs.delete(@range_key)
+        @_item.attributes.set(attrs)
+      else
+        @_item.attributes.set(@attributes)
+      end
       @hash_value = hash_value if is_new?
       @is_new = false
       @_item.attributes.to_h
