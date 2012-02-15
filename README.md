@@ -2,7 +2,7 @@
 
 Fun little ruby client for Amazon DynamoDB.
 
-    rdy = Rdy.new("your_table", "your_hash_value")
+    rdy = Rdy.new("your_table", [:your_hash_key, :string])
     rdy.any_attribute = "nice!"
     rdy.foo = "bar"
     rdy.save("1") # hash key value
@@ -20,6 +20,8 @@ Fun little ruby client for Amazon DynamoDB.
     rdy.count
 
     rdy.scan(:any_attribute => 'nice!')
+    limit = 10
+    rdy.scan(:any_attribute => 'nice!', 10)
 
     read_capacity_units = 10
     write_capacity_units = 5

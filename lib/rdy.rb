@@ -3,18 +3,28 @@ gem "aws-sdk"
 require "aws-sdk"
 
 class Rdy
+  attr_accessor :hash_key_conditional_check, :check_table_status
   @@_tables = {}
+  
   def initialize(table, hash_key, range_key = nil)
-    @attributes = {}; @table = table; @hash_key = hash_key; @range_key = range_key
+    @attributes = {}; @table = table; @hash_key = hash_key[0].to_s
+    @range_key = range_key[0].to_s if range_key
     @is_new = true
+    self.hash_key_conditional_check = false
+    self.check_table_status = false
     if @@_tables[table]
       @_table = @@_tables[table]
     else
       @_table = Rdy.dynamo_db.tables[@table]
-      if @_table.status == :active
-        @@_tables[table] = @_table
+      if self.check_table_status
+        if @_table.status == :active
+          @@_tables[table] = @_table
+        else
+          raise "Table not active yet!"
+        end
       else
-        raise "Table not active yet!"
+        @_table.hash_key = [@hash_key.to_sym, hash_key[1].to_sym]
+        @_table.range_key = [@range_key.to_sym, range_key[1].to_sym] if @range_key
       end
     end
   end
@@ -37,11 +47,15 @@ class Rdy
   end
 
   def all; @_table.items.collect {|i| i.attributes.to_h }; end
-  def find(hash_value)
+  def find(hash_value, range_value = nil)
     raise "missing hash value" if hash_value.nil?
-    @_item = @_table.items[hash_value]
+    if @range_key and range_value
+      @_item = @_table.items.at(@hash_value, range_value)
+    else
+      @_item = @_table.items[hash_value]
+    end
     @attributes.clear
-    if @_item.attributes.any?
+    if @_item and @_item.attributes and @_item.attributes.any?
       @_item.attributes.to_h.each {|k, v| self.send("#{k}=".to_sym, v) unless k == @hash_key }
       @hash_value = hash_value; @is_new = false
     else
@@ -55,7 +69,14 @@ class Rdy
   def save(hash_value = nil)
     raise "missing hash value" if hash_value.nil? and is_new?
     if is_new?
-      @_item = @_table.items.create(@range_key ? { @hash_key.to_sym => hash_value, @range_key.to_sym => @attributes[@range_key] } : { @hash_key.to_sym => hash_value })
+      if @range_key
+        values = { @hash_key.to_sym => hash_value, @range_key.to_sym => @attributes[@range_key] }
+      else
+        values = { @hash_key.to_sym => hash_value }
+      end
+      options = {}
+      options[:unless_exists] = @hash_key if hash_key_conditional_check  
+      @_item = @_table.items.create(values, options)
     end
     if @_item
       if @range_key
@@ -70,10 +91,13 @@ class Rdy
     end
   end
 
-  def scan(attrs)
-    @_table.items.where(attrs).collect do |item|
-      item.attributes.to_h
+  def scan(attrs, limit = nil)
+    values = []; options = {}
+    options[:limit] = limit if limit
+    @_table.items.where(attrs).each(options) do |item|
+      values << item.attributes.to_h
     end
+    values
   end
 
   def destroy

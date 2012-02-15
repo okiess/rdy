@@ -2,11 +2,11 @@ require 'helper'
 
 class TestRdy < Test::Unit::TestCase
   def rdy
-    @rdy = Rdy.new(RDY_SIMPLE_TABLE, 'id')
+    @rdy = Rdy.new(RDY_SIMPLE_TABLE, [:id, :string])
   end
 
   def rdy_range
-    @rdy2 = Rdy.new(RDY_RANGE_TABLE, 'id', 'foo')
+    @rdy2 = Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string])
   end
 
   should "create an Rdy instance" do
@@ -92,7 +92,7 @@ class TestRdy < Test::Unit::TestCase
       @rdy.destroy
     end
   end
-  
+
   context "Destroying" do
     setup do
       rdy
@@ -110,23 +110,76 @@ class TestRdy < Test::Unit::TestCase
     end
   end
   
-  context "Query" do
+  context "Scan Table" do
     setup do
       rdy_range
     end
     
-    should "query by range value" do
+    should "scan table by attribute values" do
+      @rdy2 = Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string])
       @rdy2.foo = "bar1"
       @rdy2.data = "test"
       @rdy2.save("4")
-      rdy_range
-      @rdy2.foo = "bar2"
-      @rdy2.data = "test"
-      @rdy2.save("5")
       
+      @rdy3 = Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string])
+      @rdy3.foo = "bar2"
+      @rdy3.data = "test"
+      @rdy3.save("5")
+
       attrs = @rdy2.scan(:data => 'test')
       assert_not_nil attrs
       assert_equal attrs.size, 2
+
+      attrs = @rdy2.scan(:data => 'test', :foo => 'bar1')
+      assert_not_nil attrs
+      assert_equal attrs.size, 1
+      assert_equal attrs[0]['foo'], 'bar1'
+
+      attrs = @rdy2.scan(:data => 'test', :foo => 'bar2')
+      assert_not_nil attrs
+      assert_equal attrs.size, 1
+      assert_equal attrs[0]['foo'], 'bar2'
+
+      limit = 1
+      attrs = @rdy2.scan({:data => 'test'}, limit)
+      assert_not_nil attrs
+      assert_equal attrs.size, 1
+      
+      @rdy2.find("4", "bar1")
+      @rdy2.destroy
+      
+      @rdy3.find("5", "bar2")
+      @rdy3.destroy
+    end
+  end
+
+  context "Finding hash-key based items" do
+    setup do
+      rdy
+    end
+    
+    should "find an item by hash-key" do
+      @rdy.foo = "bar"
+      attributes = @rdy.save("6")
+      @rdy.find("6")
+      assert_not_nil @rdy.foo
+      assert_equal @rdy.foo, "bar"
+      @rdy.destroy
+    end
+  end
+  
+  context "Finding hash-key/range based items" do
+    setup do
+      rdy_range
+    end
+    
+    should "find an item by hash-key & range combination" do
+      @rdy2.foo = "bar"
+      attributes = @rdy2.save("7")
+      @rdy2.find("7", "bar")
+      assert_not_nil @rdy2.foo
+      assert_equal @rdy2.foo, "bar"
+      @rdy2.destroy
     end
   end
 end
