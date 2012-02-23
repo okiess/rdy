@@ -30,6 +30,7 @@ class Rdy
   end
   def table=(value); @table = value; end
   def table; @table; end
+  def table_exists?; @_table.exists?; end
   def attributes; @attributes; end
   def hash_value; @hash_value; end
   def hash_key; @hash_key; end
@@ -99,6 +100,17 @@ class Rdy
     end
     values
   end
+
+  def query(options = {})
+    if options and options.any?
+      values = []
+      @_table.items.query(options).each do |item|
+        values << item.attributes.to_h
+      end
+      values
+    end
+  end
+  def query_by_range_value(value); query(:hash_value => self.hash_value.to_s, :range_value => value); end
 
   def destroy
     unless is_new?

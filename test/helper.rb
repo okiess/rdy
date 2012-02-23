@@ -16,10 +16,24 @@ require 'rdy'
 
 RDY_SIMPLE_TABLE = 'rdy_test_simple'
 RDY_RANGE_TABLE = 'rdy_test_range'
+creating = false
 
-puts "Setting up test tables for Rdy..."
-Rdy.create_table(RDY_SIMPLE_TABLE, 10, 5, :id => :string) rescue nil
-Rdy.create_table(RDY_RANGE_TABLE, 10, 5, {:id => :string}, {:foo => :string}) rescue nil
+unless Rdy.new(RDY_SIMPLE_TABLE, [:id, :string]).table_exists?
+  puts "Setting up test tables for Rdy: #{RDY_SIMPLE_TABLE}"
+  Rdy.create_table(RDY_SIMPLE_TABLE, 10, 5, :id => :string)
+  creating = true
+end
+
+unless Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string]).table_exists?
+  puts "Setting up test tables for Rdy: #{RDY_RANGE_TABLE}"
+  Rdy.create_table(RDY_RANGE_TABLE, 10, 5, {:id => :string}, {:foo => :string})
+  creating = true
+end
+
+if creating
+  puts "Waiting for tables to become active..."
+  sleep 60
+end
 
 class Test::Unit::TestCase
 end

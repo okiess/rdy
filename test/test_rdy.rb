@@ -182,4 +182,58 @@ class TestRdy < Test::Unit::TestCase
       @rdy2.destroy
     end
   end
+  
+  context "Query Table" do
+    setup do
+      rdy_range
+    end
+    
+    should "query table by hash value and range value" do    
+      @rdy2 = Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string])
+      @rdy2.foo = "a"
+      @rdy2.save("8")
+      
+      @rdy3 = Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string])
+      @rdy3.foo = "b"
+      @rdy3.save("9")
+
+      attrs = @rdy2.query(:hash_value => "8", :range_value => "a")
+      assert_not_nil attrs
+      assert_equal attrs.size, 1
+      assert_equal attrs[0]['id'], '8'
+      assert_equal attrs[0]['foo'], 'a'
+      
+      attrs = @rdy2.query_by_range_value("a")
+      assert_not_nil attrs
+      assert_equal attrs.size, 1
+      assert_equal attrs[0]['id'], '8'
+      assert_equal attrs[0]['foo'], 'a'
+      
+      attrs = @rdy2.query_by_range_value("b")
+      assert_not_nil attrs
+      assert_equal attrs.size, 0
+      
+      attrs = @rdy3.query(:hash_value => "9", :range_value => "b")
+      assert_not_nil attrs
+      assert_equal attrs.size, 1
+      assert_equal attrs[0]['id'], '9'
+      assert_equal attrs[0]['foo'], 'b'
+      
+      attrs = @rdy3.query_by_range_value("b")
+      assert_not_nil attrs
+      assert_equal attrs.size, 1
+      assert_equal attrs[0]['id'], '9'
+      assert_equal attrs[0]['foo'], 'b'
+      
+      attrs = @rdy3.query_by_range_value("a")
+      assert_not_nil attrs
+      assert_equal attrs.size, 0
+
+      @rdy2.find("8", "a")
+      @rdy2.destroy
+      
+      @rdy3.find("9", "b")
+      @rdy3.destroy
+    end
+  end
 end
