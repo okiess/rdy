@@ -22,7 +22,7 @@ Fun little ruby client for Amazon DynamoDB.
 
     rdy.scan(:any_attribute => 'nice!')
     limit = 10
-    rdy.scan(:any_attribute => 'nice!', 10)
+    rdy.scan(:any_attribute => 'nice!', limit)
 
     # hash & range-key based tables
     rdy2 = Rdy.new("your_table", [:your_hash_key, :string], [:your_range_key, :number])
@@ -38,8 +38,6 @@ Fun little ruby client for Amazon DynamoDB.
     write_capacity_units = 5
     Rdy.create_table("rdy", read_capacity_units, write_capacity_units, :id => :string) # hash key only
     Rdy.create_table("rdy2", read_capacity_units, write_capacity_units, {:id => :string}, {:comment_id => :number}) # hash and range key
-
-Advanced features like queries, scans etc. are not supported yet.
 
 ## Installation
 
