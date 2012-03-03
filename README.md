@@ -45,10 +45,13 @@ Fun little ruby client for Amazon DynamoDB.
 
     # You can also create your own class
     class User < RdyItem
-        def initialize([:id, :string], [:your_range_key, :number]) # this will save data to the 'users' table
+        def initialize(hash_key, range_key) # this will save data to the 'users' table
+            super(hash_key, range_key)
         end
     end
 
+    user = User.new([:your_hash_key, :string], [:your_range_key, :number])
+    
 ## Installation
 
     gem install rdy
