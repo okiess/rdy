@@ -14,7 +14,9 @@ Fun little ruby client for Amazon DynamoDB.
     rdy.any_attribute = nil
     rdy.save # delete an attribute
     
-    rdy.find("1") # find by hash key value
+    rdy.find("1") # find by hash key value / sets values to current instance
+    rdy_instance = Rdy.find([:id, :string, 'mykey1']) # returns new Rdy instance
+
     rdy.destroy # delete item
 
     rdy.all
@@ -29,7 +31,8 @@ Fun little ruby client for Amazon DynamoDB.
     rdy2.your_range_key = 1
     rdy2.save('mykey1')
 
-    rdy2.find('mykey1', 1)
+    rdy2.find('mykey1', 1) # set values to current instance
+    rdy_instance = Rdy.find([:your_hash_key, :string, 'mykey1'], [:your_range_key, :number, 1]) # return new Rdy instance
 
     rdy2.query(:hash_value => 'mykey1', :range_value => 1)
     rdy2.query_by_range_value(1)

@@ -1,13 +1,14 @@
 require "rubygems"
 gem "aws-sdk"
 require "aws-sdk"
+require 'digest'
 
 class Rdy
   attr_accessor :hash_key_conditional_check, :check_table_status
   @@_tables = {}
   
   def initialize(table, hash_key, range_key = nil)
-    @attributes = {}; @table = table; @hash_key = hash_key[0].to_s
+    @attributes = {}; @table = table.to_s; @hash_key = hash_key[0].to_s
     @range_key = range_key[0].to_s if range_key
     @is_new = true
     self.hash_key_conditional_check = false
@@ -28,14 +29,16 @@ class Rdy
       end
     end
   end
-  def table=(value); @table = value; end
+  def table=(value); @table = value.to_s; end
   def table; @table; end
   def table_exists?; @_table.exists?; end
   def attributes; @attributes; end
   def hash_value; @hash_value; end
   def hash_key; @hash_key; end
   def range_key; @range_key; end
-
+  def range_value; @range_value; end
+  def self.generate_key; Digest::SHA1.hexdigest((0...50).map{ ('a'..'z').to_a[rand(26)] }.join); end
+  
   def self.dynamo_db
     config = YAML.load(File.read("#{ENV['HOME']}/.rdy.yml"))
     raise "Config file expected in ~/.rdy.yml" unless config
@@ -47,18 +50,32 @@ class Rdy
       :hash_key => hash_key, :range_key => range_key)
   end
 
+  def build(attrs)
+    if attrs
+      @attributes.clear
+      attrs.each {|k, v| self.send("#{k.to_s}=".to_sym, v) unless k == @hash_key }
+      return self
+    end
+  end
+
   def all; @_table.items.collect {|i| i.attributes.to_h }; end
+  def self.find(table, hash_key_value, range_key_value = nil)
+    rdy = Rdy.new(table, hash_key_value[0..1], range_key_value ? range_key_value[0..1] : nil)
+    rdy.find(hash_key_value[2], range_key_value ? range_key_value[2] : nil)
+    rdy
+  end
   def find(hash_value, range_value = nil)
     raise "missing hash value" if hash_value.nil?
     if @range_key and range_value
-      @_item = @_table.items.at(@hash_value, range_value)
+      @_item = @_table.items.at(hash_value, range_value)
     else
       @_item = @_table.items[hash_value]
     end
     @attributes.clear
     if @_item and @_item.attributes and @_item.attributes.any?
-      @_item.attributes.to_h.each {|k, v| self.send("#{k}=".to_sym, v) unless k == @hash_key }
+      self.build(@_item.attributes.to_h)
       @hash_value = hash_value; @is_new = false
+      @range_value = range_value if range_value
     else
       @hash_value = nil
     end
@@ -126,5 +143,11 @@ class Rdy
     else
       @attributes[method.to_s]
     end
+  end
+end
+
+class RdyItem < Rdy
+  def initialize(hash_key, range_key = nil, table = nil)
+    super(table ? table.to_s : "#{self.class.name.downcase}s", hash_key, range_key)
   end
 end

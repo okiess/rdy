@@ -44,8 +44,18 @@ class TestRdy < Test::Unit::TestCase
       assert_equal @rdy.attributes.size, 1
       assert_equal @rdy.attributes['foo'], 'bar'
     end
+    
+    should "build an Rdy instance from an attributes hash" do
+      rdy
+      attributes = { 'test' => 'testval', 'foo' => 'bar', :number => 1}
+      rdy_instance = Rdy.new(RDY_SIMPLE_TABLE, [:id, :string]).build(attributes)
+      assert_not_nil rdy_instance
+      assert_equal rdy_instance.test, 'testval'
+      assert_equal rdy_instance.foo, 'bar'
+      assert_equal rdy_instance.number, 1
+    end
   end
-  
+
   context "Creating" do
     setup do
       rdy
@@ -59,8 +69,9 @@ class TestRdy < Test::Unit::TestCase
       assert_equal @rdy.foo, "bar"
       assert_equal @rdy.table, RDY_SIMPLE_TABLE
       assert_nil @rdy.hash_value
-      attributes = @rdy.save('1')
-      assert_equal @rdy.hash_value, '1'
+      hash_value = Rdy.generate_key
+      attributes = @rdy.save(hash_value)
+      assert_equal @rdy.hash_value, hash_value
       assert_equal attributes.size, 4
       assert attributes.keys.include?('id')
       assert attributes.keys.include?('foo')
@@ -78,15 +89,16 @@ class TestRdy < Test::Unit::TestCase
 
     should "update an item" do
       @rdy.foo = "bar"
-      attributes = @rdy.save("2")
+      hash_value = Rdy.generate_key
+      attributes = @rdy.save(hash_value)
       assert !@rdy.is_new?
-      assert_equal @rdy.hash_value, "2"
+      assert_equal @rdy.hash_value, hash_value
       assert_equal @rdy.foo, "bar"
       assert_equal attributes['foo'], "bar"
       @rdy.foo = "bar2"
       attributes = @rdy.save
       assert !@rdy.is_new?
-      assert_equal @rdy.hash_value, "2"
+      assert_equal @rdy.hash_value, hash_value
       assert_equal @rdy.foo, "bar2"
       assert_equal attributes['foo'], "bar2"
       @rdy.destroy
@@ -100,12 +112,13 @@ class TestRdy < Test::Unit::TestCase
     
     should "destroy an item" do
       @rdy.foo = "bar"
-      attributes = @rdy.save("3")
-      @rdy.find("3")
+      hash_value = Rdy.generate_key
+      attributes = @rdy.save(hash_value)
+      @rdy.find(hash_value)
       assert_not_nil @rdy.foo
       assert_equal @rdy.foo, "bar"
       @rdy.destroy
-      @rdy.find("3")
+      @rdy.find(hash_value)
       assert_nil @rdy.hash_value
     end
   end
@@ -116,15 +129,17 @@ class TestRdy < Test::Unit::TestCase
     end
     
     should "scan table by attribute values" do
+      hash_value1 = Rdy.generate_key
       @rdy2 = Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string])
       @rdy2.foo = "bar1"
       @rdy2.data = "test"
-      @rdy2.save("4")
+      @rdy2.save(hash_value1)
       
+      hash_value2 = Rdy.generate_key
       @rdy3 = Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string])
       @rdy3.foo = "bar2"
       @rdy3.data = "test"
-      @rdy3.save("5")
+      @rdy3.save(hash_value2)
 
       attrs = @rdy2.scan(:data => 'test')
       assert_not_nil attrs
@@ -145,10 +160,10 @@ class TestRdy < Test::Unit::TestCase
       assert_not_nil attrs
       assert_equal attrs.size, 1
       
-      @rdy2.find("4", "bar1")
+      @rdy2.find(hash_value1, "bar1")
       @rdy2.destroy
       
-      @rdy3.find("5", "bar2")
+      @rdy3.find(hash_value2, "bar2")
       @rdy3.destroy
     end
   end
@@ -159,26 +174,55 @@ class TestRdy < Test::Unit::TestCase
     end
     
     should "find an item by hash-key" do
+      hash_value = Rdy.generate_key
       @rdy.foo = "bar"
-      attributes = @rdy.save("6")
-      @rdy.find("6")
+      attributes = @rdy.save(hash_value)
+      @rdy.find(hash_value)
       assert_not_nil @rdy.foo
       assert_equal @rdy.foo, "bar"
       @rdy.destroy
     end
+    
+    should "use the find class method" do
+      hash_value = Rdy.generate_key
+      @rdy.foo = "bar"
+      attributes = @rdy.save(hash_value)
+      rdy_result = Rdy.find(RDY_SIMPLE_TABLE, [:id, :string, hash_value])
+      assert_not_nil rdy_result
+      assert rdy_result.is_a?(Rdy)
+      assert_not_nil rdy_result.attributes
+      assert_equal rdy_result.foo, 'bar'
+      assert_equal rdy_result.hash_value, hash_value
+      @rdy.destroy
+    end
   end
-  
+
   context "Finding hash-key/range based items" do
     setup do
       rdy_range
     end
     
     should "find an item by hash-key & range combination" do
+      hash_value = Rdy.generate_key
       @rdy2.foo = "bar"
-      attributes = @rdy2.save("7")
-      @rdy2.find("7", "bar")
+      attributes = @rdy2.save(hash_value)
+      @rdy2.find(hash_value, "bar")
       assert_not_nil @rdy2.foo
       assert_equal @rdy2.foo, "bar"
+      @rdy2.destroy
+    end
+    
+    should "use the find class method" do
+      hash_value = Rdy.generate_key
+      @rdy2.foo = "bar"
+      attributes = @rdy2.save(hash_value)
+      rdy_result = Rdy.find(RDY_RANGE_TABLE, [:id, :string, hash_value], [:foo, :string, 'bar'])
+      assert_not_nil rdy_result
+      assert rdy_result.is_a?(Rdy)
+      assert_not_nil rdy_result.attributes
+      assert_equal rdy_result.foo, 'bar'
+      assert_equal rdy_result.hash_value, hash_value
+      assert_equal rdy_result.range_value, 'bar'
       @rdy2.destroy
     end
   end
@@ -189,50 +233,52 @@ class TestRdy < Test::Unit::TestCase
     end
     
     should "query table by hash value and range value" do    
+      hash_value1 = Rdy.generate_key
       @rdy2 = Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string])
       @rdy2.foo = "a"
-      @rdy2.save("8")
+      @rdy2.save(hash_value1)
       
+      hash_value2 = Rdy.generate_key
       @rdy3 = Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string])
       @rdy3.foo = "b"
-      @rdy3.save("9")
+      @rdy3.save(hash_value2)
 
-      attrs = @rdy2.query(:hash_value => "8", :range_value => "a")
+      attrs = @rdy2.query(:hash_value => hash_value1, :range_value => "a")
       assert_not_nil attrs
       assert_equal attrs.size, 1
-      assert_equal attrs[0]['id'], '8'
+      assert_equal attrs[0]['id'], hash_value1
       assert_equal attrs[0]['foo'], 'a'
       
       attrs = @rdy2.query_by_range_value("a")
       assert_not_nil attrs
       assert_equal attrs.size, 1
-      assert_equal attrs[0]['id'], '8'
+      assert_equal attrs[0]['id'], hash_value1
       assert_equal attrs[0]['foo'], 'a'
       
       attrs = @rdy2.query_by_range_value("b")
       assert_not_nil attrs
       assert_equal attrs.size, 0
       
-      attrs = @rdy3.query(:hash_value => "9", :range_value => "b")
+      attrs = @rdy3.query(:hash_value => hash_value2, :range_value => "b")
       assert_not_nil attrs
       assert_equal attrs.size, 1
-      assert_equal attrs[0]['id'], '9'
+      assert_equal attrs[0]['id'], hash_value2
       assert_equal attrs[0]['foo'], 'b'
       
       attrs = @rdy3.query_by_range_value("b")
       assert_not_nil attrs
       assert_equal attrs.size, 1
-      assert_equal attrs[0]['id'], '9'
+      assert_equal attrs[0]['id'], hash_value2
       assert_equal attrs[0]['foo'], 'b'
       
       attrs = @rdy3.query_by_range_value("a")
       assert_not_nil attrs
       assert_equal attrs.size, 0
 
-      @rdy2.find("8", "a")
+      @rdy2.find(hash_value1, "a")
       @rdy2.destroy
       
-      @rdy3.find("9", "b")
+      @rdy3.find(hash_value2, "b")
       @rdy3.destroy
     end
   end
