@@ -6,7 +6,8 @@ Fun little ruby client for Amazon DynamoDB.
     rdy = Rdy.new("your_table", [:your_hash_key, :string])
     rdy.any_attribute = "nice!"
     rdy.foo = "bar"
-    rdy.save("1") # hash key value
+    rdy.save("1") # set your hash key value
+    # rdy.save # if ommitted the hash key value is generated
     
     rdy.foo = "bar2"
     rdy.save # update
@@ -29,10 +30,10 @@ Fun little ruby client for Amazon DynamoDB.
     # hash & range-key based tables
     rdy2 = Rdy.new("your_table", [:your_hash_key, :string], [:your_range_key, :number])
     rdy2.your_range_key = 1
-    rdy2.save('mykey1')
+    rdy2.save('mykey1') # or just rdy2.save
 
-    rdy2.find('mykey1', 1) # set values to current instance
-    rdy_instance = Rdy.find([:your_hash_key, :string, 'mykey1'], [:your_range_key, :number, 1]) # return new Rdy instance
+    rdy2.find('mykey1', 1) # sets item values to current instance
+    rdy_instance = Rdy.find([:your_hash_key, :string, 'mykey1'], [:your_range_key, :number, 1]) # returns new Rdy instance
 
     rdy2.query(:hash_value => 'mykey1', :range_value => 1)
     rdy2.query_by_range_value(1)
@@ -41,6 +42,12 @@ Fun little ruby client for Amazon DynamoDB.
     write_capacity_units = 5
     Rdy.create_table("rdy", read_capacity_units, write_capacity_units, :id => :string) # hash key only
     Rdy.create_table("rdy2", read_capacity_units, write_capacity_units, {:id => :string}, {:comment_id => :number}) # hash and range key
+
+    # You can also create your own class
+    class User < RdyItem
+        def initialize([:id, :string], [:your_range_key, :number]) # this will save data to the 'users' table
+        end
+    end
 
 ## Installation
 

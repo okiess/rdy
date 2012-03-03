@@ -1,5 +1,5 @@
 source "http://rubygems.org"
-gem "aws-sdk", ">= 1.3.2"
+gem "aws-sdk", ">= 1.3.5"
 group :development do
   gem "shoulda", ">= 0"
   gem "bundler", "~> 1.0.0"

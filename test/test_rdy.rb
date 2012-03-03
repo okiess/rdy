@@ -80,8 +80,27 @@ class TestRdy < Test::Unit::TestCase
       assert !@rdy.is_new?
       @rdy.destroy
     end
+    
+    should "save an item with a generated hash key value" do
+      assert @rdy.is_new?
+      @rdy.foo = "bar"
+      @rdy.count = 1
+      @rdy.tags = ['a', 'b', 'c']
+      assert_equal @rdy.foo, "bar"
+      assert_equal @rdy.table, RDY_SIMPLE_TABLE
+      assert_nil @rdy.hash_value
+      attributes = @rdy.save
+      assert_not_nil @rdy.hash_value
+      assert_equal attributes.size, 4
+      assert attributes.keys.include?('id')
+      assert attributes.keys.include?('foo')
+      assert attributes.keys.include?('count')
+      assert attributes.keys.include?('tags')
+      assert !@rdy.is_new?
+      @rdy.destroy
+    end
   end
-  
+
   context "Updating" do
     setup do
       rdy

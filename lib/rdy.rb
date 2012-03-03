@@ -85,7 +85,7 @@ class Rdy
 
   def is_new?; @is_new; end
   def save(hash_value = nil)
-    raise "missing hash value" if hash_value.nil? and is_new?
+    hash_value = Rdy.generate_key if hash_value.nil? and is_new?
     if is_new?
       if @range_key
         values = { @hash_key.to_sym => hash_value, @range_key.to_sym => @attributes[@range_key] }
@@ -93,7 +93,7 @@ class Rdy
         values = { @hash_key.to_sym => hash_value }
       end
       options = {}
-      options[:unless_exists] = @hash_key if hash_key_conditional_check  
+      options[:unless_exists] = @hash_key if hash_key_conditional_check
       @_item = @_table.items.create(values, options)
     end
     if @_item
@@ -149,5 +149,10 @@ end
 class RdyItem < Rdy
   def initialize(hash_key, range_key = nil, table = nil)
     super(table ? table.to_s : "#{self.class.name.downcase}s", hash_key, range_key)
+  end
+
+  def self.create_table(read_capacity_units, write_capacity_units, hash_key, range_key = nil)
+    dynamo_db.tables.create(self.table, read_capacity_units, write_capacity_units,
+      :hash_key => hash_key, :range_key => range_key)
   end
 end
