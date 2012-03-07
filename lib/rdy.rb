@@ -43,7 +43,8 @@ class Rdy
     config = YAML.load(File.read("#{ENV['HOME']}/.rdy.yml"))
     raise "Config file expected in ~/.rdy.yml" unless config
     @@dynamo_db = AWS::DynamoDB.new(:access_key_id => config['access_key_id'],
-                                   :secret_access_key => config['secret_access_key'])
+                                   :secret_access_key => config['secret_access_key'],
+                                   :dynamo_db_endpoint => config['dynamo_db_endpoint'])
   end
   def self.create_table(table, read_capacity_units, write_capacity_units, hash_key, range_key = nil)
     dynamo_db.tables.create(table, read_capacity_units, write_capacity_units,

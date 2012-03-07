@@ -1,2 +1,3 @@
 access_key_id: "YOUR KEY"
 secret_access_key: "YOUR SECRET"
+dynamo_db_endpoint: 'dynamodb.eu-west-1.amazonaws.com' #dynamodb.us-east-1.amazonaws.com
