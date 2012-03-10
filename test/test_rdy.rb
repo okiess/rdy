@@ -81,6 +81,31 @@ class TestRdy < Test::Unit::TestCase
       @rdy.destroy
     end
     
+    should "create an item" do
+      hash_value = Rdy.generate_key
+      @rdy = Rdy.create(RDY_SIMPLE_TABLE, [:id, :string, hash_value], nil, {"foo" => "bar"})
+      assert_equal @rdy.foo, "bar"
+      assert_equal @rdy.table, RDY_SIMPLE_TABLE
+      assert_equal @rdy.hash_value, hash_value
+      assert @rdy.attributes.keys.include?('id')
+      assert @rdy.attributes.keys.include?('foo')
+      assert !@rdy.is_new?
+      @rdy.destroy
+
+      hash_value = Rdy.generate_key
+      @rdy = Rdy.create(RDY_RANGE_TABLE, [:id, :string, hash_value], [:foo, :string, "bar"], {"data" => 1})
+      assert_equal @rdy.foo, "bar"
+      assert_equal @rdy.data, 1
+      assert_equal @rdy.table, RDY_RANGE_TABLE
+      assert_equal @rdy.hash_value, hash_value
+      assert_equal @rdy.range_value, 'bar'
+      assert @rdy.attributes.keys.include?('id')
+      assert @rdy.attributes.keys.include?('foo')
+      assert @rdy.attributes.keys.include?('data')
+      assert !@rdy.is_new?
+      @rdy.destroy
+    end
+
     should "save an item with a generated hash key value" do
       assert @rdy.is_new?
       @rdy.foo = "bar"

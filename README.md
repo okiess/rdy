@@ -8,7 +8,7 @@ Fun little ruby client for Amazon DynamoDB.
     rdy.foo = "bar"
     rdy.save("1") # set your hash key value
     # rdy.save # if ommitted the hash key value is generated
-    
+
     rdy.foo = "bar2"
     rdy.save # update
     
@@ -16,9 +16,11 @@ Fun little ruby client for Amazon DynamoDB.
     rdy.save # delete an attribute
     
     rdy.find("1") # find by hash key value / sets values to current instance
-    rdy_instance = Rdy.find("your_table", [:id, :string, 'mykey1']) # returns new Rdy instance
+    rdy_instance = Rdy.find("your_table", [:your_hash_key, :string, 'mykey1']) # returns new Rdy instance
 
     rdy.destroy # delete item
+
+    rdy_instance = Rdy.create('your_table', [:your_hash_key, :string, "your_hash_key"], nil, {"foo" => "bar"})
 
     rdy.all
     rdy.count
@@ -31,6 +33,8 @@ Fun little ruby client for Amazon DynamoDB.
     rdy2 = Rdy.new("your_table", [:your_hash_key, :string], [:your_range_key, :number])
     rdy2.your_range_key = 1
     rdy2.save('mykey1') # or just rdy2.save
+
+    rdy_instance = Rdy.create('your_table', [:your_hash_key, :string, "your_hash_value"], [:your_range_key, :number, 1], {"foo" => "bar"})
 
     rdy2.find('mykey1', 1) # sets item values to current instance
     rdy_instance = Rdy.find("your_table", [:your_hash_key, :string, 'mykey1'], [:your_range_key, :number, 1]) # returns new Rdy instance

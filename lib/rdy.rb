@@ -37,6 +37,7 @@ class Rdy
   def hash_key; @hash_key; end
   def range_key; @range_key; end
   def range_value; @range_value; end
+  def range_value=(rv); @range_value = rv; end
   def self.generate_key; Digest::SHA1.hexdigest((0...50).map{ ('a'..'z').to_a[rand(26)] }.join); end
   
   def self.dynamo_db
@@ -49,6 +50,18 @@ class Rdy
   def self.create_table(table, read_capacity_units, write_capacity_units, hash_key, range_key = nil)
     dynamo_db.tables.create(table, read_capacity_units, write_capacity_units,
       :hash_key => hash_key, :range_key => range_key)
+  end
+
+  def self.create(table, hash_key_value, range_key_value, attrs = {})
+    raise "No attributes given!" unless attrs
+    rdy = Rdy.new(table, hash_key_value[0..1], range_key_value ? range_key_value[0..1] : nil)
+    rdy.build(attrs.merge(hash_key_value[0].to_sym => hash_key_value[2]))
+    if range_key_value
+      rdy.send("#{range_key_value[0]}=".to_sym, range_key_value[2])
+      rdy.send(:range_value=, range_key_value[2])
+    end
+    rdy.save(hash_key_value[2])
+    rdy
   end
 
   def build(attrs)
@@ -88,26 +101,20 @@ class Rdy
   def save(hash_value = nil)
     hash_value = Rdy.generate_key if hash_value.nil? and is_new?
     if is_new?
-      if @range_key
-        values = { @hash_key.to_sym => hash_value, @range_key.to_sym => @attributes[@range_key] }
-      else
-        values = { @hash_key.to_sym => hash_value }
-      end
-      options = {}
+      options = {}; values = { @hash_key.to_sym => hash_value }
       options[:unless_exists] = @hash_key if hash_key_conditional_check
-      @_item = @_table.items.create(values, options)
-    end
-    if @_item
+      @_item = @_table.items.create(values.merge(@attributes), options)
+      @hash_value = hash_value
+      @is_new = false
+    else
       if @range_key
-        attrs = @attributes; attrs.delete(@range_key)
+        attrs = @attributes.clone; attrs.delete(@range_key)
         @_item.attributes.set(attrs)
       else
         @_item.attributes.set(@attributes)
       end
-      @hash_value = hash_value if is_new?
-      @is_new = false
-      @_item.attributes.to_h
     end
+    @_item.attributes.to_h if @_item
   end
 
   def scan(attrs, limit = nil)
