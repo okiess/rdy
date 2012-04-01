@@ -20,13 +20,13 @@ creating = false
 
 unless Rdy.new(RDY_SIMPLE_TABLE, [:id, :string]).table_exists?
   puts "Setting up test tables for Rdy: #{RDY_SIMPLE_TABLE}"
-  Rdy.create_table(RDY_SIMPLE_TABLE, 10, 5, :id => :string)
+  Rdy.create_table(RDY_SIMPLE_TABLE, 3, 5, :id => :string)
   creating = true
 end
 
 unless Rdy.new(RDY_RANGE_TABLE, [:id, :string], [:foo, :string]).table_exists?
   puts "Setting up test tables for Rdy: #{RDY_RANGE_TABLE}"
-  Rdy.create_table(RDY_RANGE_TABLE, 10, 5, {:id => :string}, {:foo => :string})
+  Rdy.create_table(RDY_RANGE_TABLE, 3, 5, {:id => :string}, {:foo => :string})
   creating = true
 end
 
