@@ -1,6 +1,7 @@
 require "rubygems"
 gem "aws-sdk"
 require "aws-sdk"
+require "yaml"
 require 'digest'
 
 class Rdy
