@@ -14,7 +14,7 @@ GEM
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
-    addressable (2.9.0)
+    addressable (2.9.2)
       public_suffix (>= 2.0.2, < 8.0)
     aws-eventstream (1.4.0)
     aws-partitions (1.1290.0)
@@ -1818,7 +1818,7 @@ DEPENDENCIES
 
 CHECKSUMS
   activesupport (8.1.4.1) sha256=16ac4f341ca65c85a1fcdb8ac73f68891aae9e3c4a6f9c3a27daed8b00017ed7
-  addressable (2.9.0) sha256=7fdf6ac3660f7f4e867a0838be3f6cf722ace541dd97767fa42bc6cfa980c7af
+  addressable (2.9.2) sha256=9117c7e7d6ee07230e75ce41fb9401ae55354dc654fcd0e862ba41d539e9a610
   aws-eventstream (1.4.0) sha256=116bf85c436200d1060811e6f5d2d40c88f65448f2125bc77ffce5121e6e183b
   aws-partitions (1.1290.0) sha256=44613571eda66decddca594c10c9cee354ce819842b5724ca4fb5115e2f06811
   aws-sdk (3.3.0) sha256=f8c1222706957a6427fe293bafacf8f58bbde3f0a24fa2bf897fa3a220a4ccbc
